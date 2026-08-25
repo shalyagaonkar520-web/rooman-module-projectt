@@ -21,20 +21,37 @@ import {
 import { Module, ModuleJson } from '../types';
 import { useProjectStore } from '../store/useProjectStore';
 import { useModuleStore } from '../store/useModuleStore';
-import { GitHubSyncCard } from '../components/GitHubSyncCard';
+import { useDeploymentStore } from '../store/useDeploymentStore';
+import { GitRepositoryCard } from '../components/git/GitRepositoryCard';
+import { DeploymentStatus } from '../components/git/DeploymentStatus';
+import { DeploymentHistory } from '../components/git/DeploymentHistory';
+import { VersionHistory } from '../components/git/VersionHistory';
+import { DeploymentLogsModal } from '../components/git/DeploymentLogsModal';
 
 export const ModuleDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { currentProject, addModuleToCurrentProject } = useProjectStore();
   const { deleteModule } = useModuleStore();
+  const {
+    fetchGitDetails,
+    fetchDeployments,
+    fetchVersions,
+    subscribeToLiveDeployments,
+    deployments,
+    activeDeployment,
+    versions,
+    currentVersion,
+    activeVersionId,
+  } = useDeploymentStore();
 
   const [module, setModule] = useState<Module | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'ai' | 'files'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'git' | 'versions' | 'ai' | 'files'>('overview');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [viewingLogsDeploymentId, setViewingLogsDeploymentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -52,7 +69,14 @@ export const ModuleDetailsPage: React.FC = () => {
         setError(err.message);
         setIsLoading(false);
       });
-  }, [id]);
+
+    fetchGitDetails(id);
+    fetchDeployments(id);
+    fetchVersions(id);
+
+    const unsubscribe = subscribeToLiveDeployments(id);
+    return () => unsubscribe();
+  }, [id, fetchGitDetails, fetchDeployments, fetchVersions, subscribeToLiveDeployments]);
 
   if (isLoading) {
     return (
@@ -239,8 +263,20 @@ export const ModuleDetailsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* GitHub Sync Section */}
-      <GitHubSyncCard module={module} onModuleUpdated={(updated) => setModule(updated)} />
+      {/* Git Repository Integration Card */}
+      <GitRepositoryCard
+        moduleId={module.id}
+        moduleName={module.name}
+        onOpenLogs={(depId) => setViewingLogsDeploymentId(depId)}
+      />
+
+      {/* Live Deployment Status (if active/recent) */}
+      {activeDeployment && (
+        <DeploymentStatus
+          deployment={activeDeployment}
+          onViewLogs={(depId) => setViewingLogsDeploymentId(depId)}
+        />
+      )}
 
       {/* Module Runtime Configuration Specifications */}
       <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
@@ -250,7 +286,7 @@ export const ModuleDetailsPage: React.FC = () => {
             <span>Module Runtime Configuration</span>
           </div>
           <span className="px-2.5 py-0.5 rounded-full text-xs font-mono bg-purple-500/10 text-purple-300 border border-purple-500/20">
-            Original Launch Spec ✓
+            Active Spec (v{currentVersion || module.version})
           </span>
         </div>
 
@@ -275,10 +311,10 @@ export const ModuleDetailsPage: React.FC = () => {
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex border-b border-slate-800 gap-6 text-sm font-semibold">
+      <div className="flex border-b border-slate-800 gap-6 text-sm font-semibold overflow-x-auto">
         <button
           onClick={() => setActiveTab('overview')}
-          className={`pb-3 transition relative ${
+          className={`pb-3 transition relative whitespace-nowrap ${
             activeTab === 'overview'
               ? 'text-indigo-400 border-b-2 border-indigo-500'
               : 'text-slate-400 hover:text-slate-200'
@@ -287,8 +323,30 @@ export const ModuleDetailsPage: React.FC = () => {
           Specifications & Schema
         </button>
         <button
+          onClick={() => setActiveTab('git')}
+          className={`pb-3 transition relative whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'git'
+              ? 'text-indigo-400 border-b-2 border-indigo-500'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Github className="w-4 h-4 text-indigo-400" />
+          <span>Deployments ({deployments.length})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('versions')}
+          className={`pb-3 transition relative whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'versions'
+              ? 'text-indigo-400 border-b-2 border-indigo-500'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Layers className="w-4 h-4 text-indigo-400" />
+          <span>Version History ({versions.length})</span>
+        </button>
+        <button
           onClick={() => setActiveTab('ai')}
-          className={`pb-3 transition relative flex items-center gap-1.5 ${
+          className={`pb-3 transition relative whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'ai'
               ? 'text-indigo-400 border-b-2 border-indigo-500'
               : 'text-slate-400 hover:text-slate-200'
@@ -299,15 +357,43 @@ export const ModuleDetailsPage: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('files')}
-          className={`pb-3 transition relative ${
+          className={`pb-3 transition relative whitespace-nowrap ${
             activeTab === 'files'
               ? 'text-indigo-400 border-b-2 border-indigo-500'
               : 'text-slate-400 hover:text-slate-200'
           }`}
         >
-          File Structure & Entry Points
+          File Structure
         </button>
       </div>
+
+      {/* Tab Content */}
+      {activeTab === 'git' && (
+        <div className="space-y-6">
+          <DeploymentHistory
+            deployments={deployments}
+            onViewLogs={(depId) => setViewingLogsDeploymentId(depId)}
+            onRollback={(ver) => {
+              const target = versions.find((v) => v.version === ver);
+              if (target) {
+                useDeploymentStore.getState().rollback(module.id, { version: ver, versionId: target.id });
+              }
+            }}
+          />
+        </div>
+      )}
+
+      {activeTab === 'versions' && (
+        <div className="space-y-6">
+          <VersionHistory
+            moduleId={module.id}
+            moduleName={module.name}
+            versions={versions}
+            currentVersion={currentVersion || module.version}
+            activeVersionId={activeVersionId}
+          />
+        </div>
+      )}
 
       {/* Tab Content */}
       {activeTab === 'overview' && (
@@ -439,6 +525,15 @@ export const ModuleDetailsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Deployment Logs Modal */}
+      {viewingLogsDeploymentId && (
+        <DeploymentLogsModal
+          deploymentId={viewingLogsDeploymentId}
+          onClose={() => setViewingLogsDeploymentId(null)}
+        />
+      )}
     </div>
   );
 };
+

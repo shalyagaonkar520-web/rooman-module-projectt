@@ -29,6 +29,10 @@ import {
 } from 'lucide-react';
 import { useGitStore } from '../store/useGitStore';
 import { useProjectStore } from '../store/useProjectStore';
+import { useDeploymentStore } from '../store/useDeploymentStore';
+import { DeploymentStatus } from '../components/git/DeploymentStatus';
+import { DeploymentHistory } from '../components/git/DeploymentHistory';
+import { DeploymentLogsModal } from '../components/git/DeploymentLogsModal';
 import { FileTreeItem } from '../types';
 
 export const ModuleWorkspacePage: React.FC = () => {
@@ -67,8 +71,17 @@ export const ModuleWorkspacePage: React.FC = () => {
   } = useGitStore();
 
   const { startLocalModule } = useProjectStore();
+  const {
+    fetchGitDetails,
+    fetchDeployments,
+    subscribeToLiveDeployments,
+    deployments,
+    activeDeployment,
+    syncNow,
+    isSyncing,
+  } = useDeploymentStore();
 
-  const [activeTab, setActiveTab] = useState<'changes' | 'history' | 'branches'>('changes');
+  const [activeTab, setActiveTab] = useState<'changes' | 'history' | 'branches' | 'deployments'>('changes');
   const [commitMessage, setCommitMessage] = useState('');
   const [commitAuthor, setCommitAuthor] = useState('Shalya');
   const [newBranchName, setNewBranchName] = useState('');
@@ -76,6 +89,7 @@ export const ModuleWorkspacePage: React.FC = () => {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [isRunningLocal, setIsRunningLocal] = useState(false);
   const [pullWarning, setPullWarning] = useState<string | null>(null);
+  const [viewingLogsDeploymentId, setViewingLogsDeploymentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (projectId && pmId) {
@@ -85,6 +99,15 @@ export const ModuleWorkspacePage: React.FC = () => {
       fetchFileTree(projectId, pmId);
     }
   }, [projectId, pmId, fetchWorkspaceStatus, fetchBranches, fetchHistory, fetchFileTree]);
+
+  useEffect(() => {
+    if (moduleMeta?.id) {
+      fetchGitDetails(moduleMeta.id);
+      fetchDeployments(moduleMeta.id);
+      const unsub = subscribeToLiveDeployments(moduleMeta.id);
+      return () => unsub();
+    }
+  }, [moduleMeta?.id, fetchGitDetails, fetchDeployments, subscribeToLiveDeployments]);
 
   // Handle local run
   const handleRunLocal = async () => {
@@ -419,17 +442,29 @@ export const ModuleWorkspacePage: React.FC = () => {
         {/* COLUMN C: GIT OPERATIONS & COMMIT PANEL */}
         <aside className="w-80 bg-slate-950 flex flex-col shrink-0">
           {/* Panel Tabs */}
-          <div className="grid grid-cols-3 bg-slate-900 border-b border-slate-800 text-xs font-semibold">
+          <div className="grid grid-cols-4 bg-slate-900 border-b border-slate-800 text-[11px] font-semibold">
             <button
               onClick={() => setActiveTab('changes')}
-              className={`py-3 text-center transition flex items-center justify-center gap-1.5 ${
+              className={`py-3 text-center transition flex items-center justify-center gap-1 ${
                 activeTab === 'changes'
                   ? 'border-b-2 border-indigo-500 text-white font-bold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <GitCommit className="w-3.5 h-3.5" />
+              <GitCommit className="w-3 h-3" />
               <span>Changes</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('deployments')}
+              className={`py-3 text-center transition flex items-center justify-center gap-1 ${
+                activeTab === 'deployments'
+                  ? 'border-b-2 border-indigo-500 text-white font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Layers className="w-3 h-3 text-indigo-400" />
+              <span>Deploy</span>
             </button>
 
             <button
@@ -437,13 +472,13 @@ export const ModuleWorkspacePage: React.FC = () => {
                 setActiveTab('history');
                 projectId && pmId && fetchHistory(projectId, pmId);
               }}
-              className={`py-3 text-center transition flex items-center justify-center gap-1.5 ${
+              className={`py-3 text-center transition flex items-center justify-center gap-1 ${
                 activeTab === 'history'
                   ? 'border-b-2 border-indigo-500 text-white font-bold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <Clock className="w-3.5 h-3.5" />
+              <Clock className="w-3 h-3" />
               <span>History</span>
             </button>
 
@@ -452,14 +487,14 @@ export const ModuleWorkspacePage: React.FC = () => {
                 setActiveTab('branches');
                 projectId && pmId && fetchBranches(projectId, pmId);
               }}
-              className={`py-3 text-center transition flex items-center justify-center gap-1.5 ${
+              className={`py-3 text-center transition flex items-center justify-center gap-1 ${
                 activeTab === 'branches'
                   ? 'border-b-2 border-indigo-500 text-white font-bold'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <GitBranch className="w-3.5 h-3.5" />
-              <span>Branches</span>
+              <GitBranch className="w-3 h-3" />
+              <span>Branch</span>
             </button>
           </div>
 
@@ -656,8 +691,47 @@ export const ModuleWorkspacePage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* TAB 4: DEPLOYMENTS & LIVE SYNC */}
+          {activeTab === 'deployments' && (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-300">Live Git Deployments</span>
+                {moduleMeta && (
+                  <button
+                    onClick={() => syncNow(moduleMeta.id)}
+                    disabled={isSyncing}
+                    className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-[11px] font-semibold flex items-center gap-1 transition"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
+                    <span>{isSyncing ? 'Syncing...' : 'Sync Now'}</span>
+                  </button>
+                )}
+              </div>
+
+              {activeDeployment && (
+                <DeploymentStatus
+                  deployment={activeDeployment}
+                  onViewLogs={(depId) => setViewingLogsDeploymentId(depId)}
+                />
+              )}
+
+              <DeploymentHistory
+                deployments={deployments}
+                onViewLogs={(depId) => setViewingLogsDeploymentId(depId)}
+              />
+            </div>
+          )}
         </aside>
       </div>
+
+      {/* DEPLOYMENT LOGS MODAL */}
+      {viewingLogsDeploymentId && (
+        <DeploymentLogsModal
+          deploymentId={viewingLogsDeploymentId}
+          onClose={() => setViewingLogsDeploymentId(null)}
+        />
+      )}
 
       {/* NEW BRANCH MODAL */}
       {isBranchModalOpen && (
@@ -703,3 +777,4 @@ export const ModuleWorkspacePage: React.FC = () => {
     </div>
   );
 };
+

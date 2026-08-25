@@ -1,21 +1,12 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
-import fs from 'fs';
-import path from 'path';
-import axios from 'axios';
 import { prisma } from '../prisma';
-import { validateZipBuffer } from '../validator';
-import { realtimeEventManager } from '../services/realtimeEvents';
+import { deploymentQueue } from '../services/deploymentQueue';
 
 export const webhooksRouter = Router();
 
-const storageDir = path.join(__dirname, '..', '..', 'uploads');
-if (!fs.existsSync(storageDir)) {
-  fs.mkdirSync(storageDir, { recursive: true });
-}
-
-// Verify GitHub Webhook Signature using GITHUB_WEBHOOK_SECRET
-function verifyGitHubSignature(
+// Verify GitHub Webhook Signature using HMAC-SHA256
+export function verifyGitHubSignature(
   rawBody: Buffer | string | undefined,
   signatureHeader: string | undefined,
   secret: string
@@ -35,7 +26,7 @@ function verifyGitHubSignature(
   }
 }
 
-// Helper: Extract all changed files in this push event
+// Helper: Extract all changed files in push event
 function getChangedFilesFromPayload(payload: any): string[] {
   const fileSet = new Set<string>();
 
@@ -56,315 +47,152 @@ function getChangedFilesFromPayload(payload: any): string[] {
   return Array.from(fileSet);
 }
 
-// POST /api/webhooks/github & POST /api/github/webhook - Receive GitHub Push Webhook
-const handleWebhook = async (req: any, res: any) => {
+// Core Webhook Handler
+const handleGitHubWebhook = async (req: any, res: Response) => {
   try {
     const signature = req.headers['x-hub-signature-256'] as string;
     const event = req.headers['x-github-event'] as string;
-    const secret = process.env.GITHUB_WEBHOOK_SECRET || 'moduleforge_webhook_secret';
+    const payload = req.body;
 
-    // 1. Verify HMAC signature when provided
-    if (signature) {
-      const isValid = verifyGitHubSignature(req.rawBody, signature, secret);
-      if (!isValid) {
-        console.warn('⚠️ GitHub Webhook signature verification failed');
-        return res.status(401).json({ error: 'Invalid GitHub webhook signature' });
-      }
-    }
-
-    // 2. Only process push events (or test ping events)
+    // 1. Handle ping event
     if (event === 'ping') {
-      return res.json({ message: 'GitHub Webhook ping received successfully' });
+      return res.status(200).json({ success: true, message: 'GitHub Webhook ping received successfully' });
     }
 
     if (event && event !== 'push') {
-      return res.json({ message: `Ignored event: ${event}` });
+      return res.status(200).json({ success: true, message: `Ignored event: ${event}` });
     }
 
-    const payload = req.body;
     if (!payload || !payload.repository) {
-      return res.status(400).json({ error: 'Invalid webhook payload' });
+      return res.status(400).json({ error: 'Invalid webhook payload: Missing repository data' });
     }
 
     const owner = payload.repository.owner?.login || payload.repository.owner?.name;
     const repo = payload.repository.name;
     const repoFullName = `${owner}/${repo}`.toLowerCase();
-    const afterCommitSha = payload.after || payload.head_commit?.id || 'unknown';
-    const commitMessage = payload.head_commit?.message || 'Updated via GitHub push';
+    const repoCloneUrl = payload.repository.clone_url || `https://github.com/${owner}/${repo}`;
+    const rawRef = payload.ref || 'refs/heads/main';
+    const branch = rawRef.replace('refs/heads/', '');
+    const commitSha = payload.after || payload.head_commit?.id || 'HEAD';
+    const commitMessage = payload.head_commit?.message || 'Update via GitHub push';
     const commitAuthor = payload.head_commit?.author?.name || payload.pusher?.name || 'GitHub Developer';
     const changedFiles = getChangedFilesFromPayload(payload);
 
-    if (!owner || !repo) {
-      return res.status(400).json({ error: 'Missing owner/repo in webhook payload' });
-    }
-
-    console.log(`⚡ Received GitHub Webhook push for ${owner}/${repo} (Commit: ${afterCommitSha.slice(0, 7)} by ${commitAuthor})`);
-    console.log(`📂 Changed files (${changedFiles.length}):`, changedFiles.slice(0, 5));
-
-    // 3. Check for standalone Module records connected to this repo
-    const directModules = await prisma.module.findMany({
-      where: {
-        sourceType: 'github',
-        githubOwner: { equals: owner },
-        githubRepo: { equals: repo },
-      },
-    });
-
-    for (const mod of directModules) {
-      const branch = mod.githubBranch || 'main';
-      const candidateUrls = [
-        `https://codeload.github.com/${owner}/${repo}/zip/refs/heads/${branch}`,
-        `https://codeload.github.com/${owner}/${repo}/zip/HEAD`,
-        `https://github.com/${owner}/${repo}/archive/refs/heads/${branch}.zip`,
-      ];
-
-      let archiveBuffer: Buffer | null = null;
-      for (const url of candidateUrls) {
-        try {
-          const zipRes = await axios.get(url, {
-            responseType: 'arraybuffer',
-            headers: { 'User-Agent': 'ModuleForge-Platform' },
-            timeout: 20000,
-          });
-          if (zipRes.data && zipRes.data.byteLength > 100) {
-            archiveBuffer = Buffer.from(zipRes.data);
-            break;
-          }
-        } catch (e) {
-          // continue
-        }
-      }
-
-      if (archiveBuffer) {
-        const zipValidation = await validateZipBuffer(archiveBuffer);
-        if (zipValidation.valid) {
-          const zipFileName = `github-${owner}-${repo}-${Date.now()}.zip`;
-          const permanentPath = path.join(storageDir, zipFileName);
-          fs.writeFileSync(permanentPath, archiveBuffer);
-
-          await prisma.module.update({
-            where: { id: mod.id },
-            data: {
-              zipStoragePath: permanentPath,
-              githubCurrentCommit: afterCommitSha,
-              githubLatestCommit: afterCommitSha,
-              githubLastSyncedAt: new Date(),
-              githubSyncStatus: 'synced',
-            },
-          });
-
-          await prisma.moduleSync.create({
-            data: {
-              moduleId: mod.id,
-              commitSha: afterCommitSha,
-              commitMessage,
-              author: commitAuthor,
-              status: 'synced',
-            },
-          });
-        }
-      }
-    }
-
-    // 4. Find all Project instances connected at project-level (Monorepo) OR module-level
-    // Case A: Project-level monorepo (e.g. company/company-erp)
-    const monorepoProjects = await prisma.project.findMany({
+    // 2. Find matching GitRepository or Module
+    let gitRepo = await prisma.gitRepository.findFirst({
       where: {
         OR: [
-          { gitOwner: owner, gitRepo: repo },
-          { gitRepositoryUrl: { contains: repo } },
+          { owner: { equals: owner }, repo: { equals: repo } },
+          { repositoryUrl: { contains: repoFullName } },
         ],
       },
-      include: {
-        modules: {
-          include: { module: true },
+      include: { module: true },
+    });
+
+    let mod = gitRepo?.module;
+
+    // Fallback: Check Module table directly
+    if (!mod) {
+      mod = await prisma.module.findFirst({
+        where: {
+          OR: [
+            { githubOwner: { equals: owner }, githubRepo: { equals: repo } },
+            { githubUrl: { contains: repoFullName } },
+            { repositoryUrl: { contains: repoFullName } },
+          ],
         },
-      },
-    });
+        include: { gitRepo: true },
+      }) as any;
+      if (mod && (mod as any).gitRepo) {
+        gitRepo = (mod as any).gitRepo;
+      }
+    }
 
-    // Case B: Per-module repositories (e.g. company/crm, company/books)
-    const perModuleMatches = await prisma.projectModule.findMany({
+    if (!mod) {
+      return res.status(404).json({
+        error: `No ModuleForge module found matching GitHub repository "${owner}/${repo}". Please connect the repository in ModuleForge first.`,
+      });
+    }
+
+    // 3. Signature verification
+    const secret = gitRepo?.webhookSecret || process.env.GITHUB_WEBHOOK_SECRET || 'moduleforge_webhook_secret';
+    if (signature) {
+      const isValid = verifyGitHubSignature(req.rawBody, signature, secret);
+      if (!isValid) {
+        console.warn(`[Webhook] Signature verification failed for repository ${owner}/${repo}`);
+        return res.status(401).json({ error: 'Invalid GitHub webhook signature' });
+      }
+    }
+
+    // 4. Branch check
+    const expectedBranch = gitRepo?.connectedBranch || mod.githubBranch || mod.defaultBranch || 'main';
+    if (branch !== expectedBranch) {
+      return res.status(200).json({
+        success: true,
+        message: `Ignored push to branch "${branch}". Connected branch is "${expectedBranch}".`,
+      });
+    }
+
+    // 5. Avoid duplicate active / successful deployments for exact commit
+    const existingDeployment = await prisma.deployment.findFirst({
       where: {
-        OR: [
-          { githubRepository: { in: [repoFullName, repo.toLowerCase()] } },
-          { module: { githubOwner: owner, githubRepo: repo } },
-        ],
-      },
-      include: {
-        module: true,
-        project: true,
+        moduleId: mod.id,
+        commitSha,
+        status: { in: ['SUCCESS', 'CLONING', 'INSTALLING', 'VALIDATING', 'BUILDING', 'DEPLOYING'] },
       },
     });
 
-    const affectedProjectModules: any[] = [...perModuleMatches];
-
-    // Identify changed modules in Monorepos
-    for (const project of monorepoProjects) {
-      for (const pm of project.modules) {
-        const modNameLower = pm.module.name.toLowerCase();
-        const modSlugLower = pm.module.slug.toLowerCase();
-
-        // Check if changed files touch "modules/<name>/" or "modules/<slug>/"
-        const isAffected = changedFiles.length === 0 || changedFiles.some((f) => {
-          const fLower = f.toLowerCase();
-          return (
-            fLower.startsWith(`modules/${modNameLower}/`) ||
-            fLower.startsWith(`modules/${modSlugLower}/`) ||
-            fLower.startsWith(`${modNameLower}/`) ||
-            fLower.startsWith(`${modSlugLower}/`)
-          );
+    if (existingDeployment) {
+      if (existingDeployment.status === 'SUCCESS') {
+        return res.status(200).json({
+          success: true,
+          message: `Commit ${commitSha.slice(0, 7)} is already deployed successfully on version ${existingDeployment.targetVersion || 'current'}.`,
+          deploymentId: existingDeployment.id,
         });
-
-        if (isAffected && !affectedProjectModules.some((existing) => existing.id === pm.id)) {
-          affectedProjectModules.push({
-            ...pm,
-            project,
-          });
-        }
+      } else {
+        return res.status(200).json({
+          success: true,
+          message: `Deployment already in progress for commit ${commitSha.slice(0, 7)}.`,
+          deploymentId: existingDeployment.id,
+        });
       }
     }
 
-    console.log(`🎯 Identified ${affectedProjectModules.length} affected project modules to sync.`);
-
-    // 5. Update Database & Broadcast to connected team members in Real-Time
-    const { deploymentProvider } = require('../services/deploymentProvider');
-
-    for (const pm of affectedProjectModules) {
-      console.log(`⚡ Syncing module "${pm.module.name}" in project "${pm.project.name}"...`);
-
-      // Set status to updating
-      await prisma.projectModule.update({
-        where: { id: pm.id },
-        data: { deploymentStatus: 'updating' },
-      });
-
-      // Broadcast updating event
-      realtimeEventManager.broadcastToProject(pm.projectId, {
-        type: 'MODULE_UPDATED',
-        moduleId: pm.moduleId,
-        moduleName: pm.module.name,
-        commitSha: afterCommitSha,
+    // 6. Create Deployment Record & Enqueue
+    const deployment = await prisma.deployment.create({
+      data: {
+        moduleId: mod.id,
+        gitRepositoryId: gitRepo?.id,
+        commitSha,
+        commitMessage,
         author: commitAuthor,
-        message: `Building latest version (${afterCommitSha.slice(0, 7)})`,
-        status: 'updating',
-      });
-
-      try {
-        const deployRes = await deploymentProvider.deploy({
-          moduleName: pm.module.name,
-          commitSha: afterCommitSha,
-          port: pm.module.frontendPort || 5173,
-        });
-
-        if (deployRes.success) {
-          // Update DB with single source of truth
-          const updatedPm = await prisma.projectModule.update({
-            where: { id: pm.id },
-            data: {
-              currentCommitSha: afterCommitSha,
-              lastCommitMessage: commitMessage,
-              lastCommitAuthor: commitAuthor,
-              deploymentUrl: deployRes.deploymentUrl,
-              deploymentStatus: 'synced',
-              lastSyncedAt: new Date(),
-            },
-          });
-
-          await prisma.moduleDeployment.create({
-            data: {
-              projectModuleId: pm.id,
-              commitSha: afterCommitSha,
-              commitMessage,
-              author: commitAuthor,
-              deploymentUrl: deployRes.deploymentUrl,
-              status: 'success',
-              buildLogs: deployRes.buildLogs,
-            },
-          });
-
-          // Log project activity
-          await prisma.projectActivity.create({
-            data: {
-              projectId: pm.projectId,
-              moduleName: pm.module.name,
-              action: 'updated',
-              actorName: commitAuthor,
-              description: commitMessage,
-              commitSha: afterCommitSha,
-              status: 'synced',
-            },
-          });
-
-          // 🟢 BROADCAST REALTIME UPDATE TO ALL AUTHORIZED TEAM MEMBERS
-          realtimeEventManager.broadcastToProject(pm.projectId, {
-            type: 'MODULE_UPDATED',
-            moduleId: pm.moduleId,
-            moduleName: pm.module.name,
-            commitSha: afterCommitSha,
-            author: commitAuthor,
-            message: commitMessage,
-            status: 'synced',
-            data: updatedPm,
-          });
-
-          console.log(`🟢 Successfully synced and broadcasted "${pm.module.name}" in project "${pm.project.name}"`);
-        } else {
-          throw new Error('Build failed');
-        }
-      } catch (deployErr: any) {
-        console.error(`🔴 Deployment failed for module "${pm.module.name}":`, deployErr.message);
-
-        await prisma.projectModule.update({
-          where: { id: pm.id },
-          data: { deploymentStatus: 'failed' },
-        });
-
-        await prisma.moduleDeployment.create({
-          data: {
-            projectModuleId: pm.id,
-            commitSha: afterCommitSha,
-            commitMessage,
-            author: commitAuthor,
-            status: 'failed',
-            buildLogs: `[${new Date().toISOString()}] 🔴 Build failed: ${deployErr.message}`,
-          },
-        });
-
-        await prisma.projectActivity.create({
-          data: {
-            projectId: pm.projectId,
-            moduleName: pm.module.name,
-            action: 'build_failed',
-            actorName: commitAuthor,
-            description: `Build failed for ${commitMessage}`,
-            commitSha: afterCommitSha,
-            status: 'failed',
-          },
-        });
-
-        realtimeEventManager.broadcastToProject(pm.projectId, {
-          type: 'MODULE_UPDATED',
-          moduleId: pm.moduleId,
-          moduleName: pm.module.name,
-          commitSha: afterCommitSha,
-          author: commitAuthor,
-          message: `Build failed: ${commitMessage}`,
-          status: 'failed',
-        });
-      }
-    }
-
-    res.json({
-      success: true,
-      directModulesCount: directModules.length,
-      affectedProjectModulesCount: affectedProjectModules.length,
-      commitSha: afterCommitSha,
+        branch,
+        status: 'PENDING',
+        triggerSource: 'webhook',
+        changedFiles: JSON.stringify(changedFiles),
+      },
     });
-  } catch (error: any) {
-    console.error('Webhook error:', error);
-    res.status(500).json({ error: error.message });
+
+    // Enqueue background deployment
+    await deploymentQueue.enqueue(deployment.id);
+
+    console.log(`[Webhook] Queued deployment ${deployment.id} for module "${mod.name}" commit ${commitSha.slice(0, 7)}`);
+
+    // Return 202 Accepted immediately
+    return res.status(202).json({
+      success: true,
+      message: `Deployment queued for module "${mod.name}" from commit ${commitSha.slice(0, 7)}`,
+      deploymentId: deployment.id,
+      moduleId: mod.id,
+      commitSha,
+      branch,
+    });
+  } catch (err: any) {
+    console.error('[Webhook] Error processing GitHub webhook:', err);
+    return res.status(500).json({ error: 'Internal server error while processing webhook', details: err.message });
   }
 };
 
-webhooksRouter.post('/github', handleWebhook);
-webhooksRouter.post('/', handleWebhook);
+// Route definitions
+webhooksRouter.post('/github', handleGitHubWebhook);
+webhooksRouter.post('/', handleGitHubWebhook);

@@ -8,6 +8,7 @@ import { categoriesRouter } from './routes/categories';
 import { webhooksRouter } from './routes/webhooks';
 import { runnerRouter } from './routes/runner';
 import gitRouter from './routes/git';
+import { moduleGitRouter } from './routes/moduleGit';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use('/api/webhooks', webhooksRouter);
 app.use('/api/github/webhook', webhooksRouter);
 app.use('/api/runner', runnerRouter);
 app.use('/api/git', gitRouter);
+app.use('/api', moduleGitRouter);
 
 app.listen(PORT, () => {
   console.log(`🚀 ModuleForge server running on http://localhost:${PORT}`);

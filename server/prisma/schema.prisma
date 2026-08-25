@@ -68,10 +68,13 @@ model Module {
   moduleJson          String?         // Optional JSON string if module.json is present
   downloads           Int             @default(0)
   isPublished         Boolean         @default(true)
+  activeVersionId     String?
   authorId            String?
   authorUser          User?           @relation("UserModules", fields: [authorId], references: [id])
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
+  gitRepo             GitRepository?
+  deployments         Deployment[]
   versions            ModuleVersion[]
   projectModules      ProjectModule[]
   syncLogs            ModuleSync[]
@@ -79,6 +82,76 @@ model Module {
   @@index([slug])
   @@index([categoryName])
   @@index([author])
+}
+
+model GitRepository {
+  id                      String       @id @default(uuid())
+  moduleId                String       @unique
+  module                  Module       @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  provider                String       @default("github") // "github" | "gitlab" | "bitbucket"
+  repositoryUrl           String
+  owner                   String
+  repo                    String
+  defaultBranch           String       @default("main")
+  connectedBranch         String       @default("main")
+  currentCommitSha        String?
+  lastSyncedCommitSha     String?
+  lastDeploymentStatus    String?      @default("NONE") // "PENDING" | "CLONING" | "INSTALLING" | "VALIDATING" | "BUILDING" | "DEPLOYING" | "SUCCESS" | "FAILED" | "CANCELLED"
+  lastDeploymentTimestamp DateTime?
+  webhookId               String?
+  webhookSecret           String?
+  connectionStatus        String       @default("connected") // "connected" | "disconnected" | "error"
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+  deployments             Deployment[]
+
+  @@index([moduleId])
+  @@index([repositoryUrl])
+  @@index([owner, repo])
+}
+
+model Deployment {
+  id              String          @id @default(uuid())
+  moduleId        String
+  module          Module          @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  gitRepositoryId String?
+  gitRepository   GitRepository?  @relation(fields: [gitRepositoryId], references: [id], onDelete: SetNull)
+  commitSha       String
+  commitMessage   String?
+  author          String?
+  branch          String          @default("main")
+  status          String          @default("PENDING") // "PENDING" | "CLONING" | "INSTALLING" | "VALIDATING" | "BUILDING" | "DEPLOYING" | "SUCCESS" | "FAILED" | "CANCELLED"
+  triggerSource   String          @default("webhook") // "webhook" | "manual_sync" | "rollback" | "initial_connect"
+  startedAt       DateTime?
+  completedAt     DateTime?
+  durationMs      Int?
+  deploymentUrl   String?
+  targetVersion   String?
+  logs            String?         // Aggregated console / build logs
+  error           String?
+  changedFiles    String?         @default("[]") // JSON string array
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deploymentLogs  DeploymentLog[]
+  versions        ModuleVersion[]
+
+  @@index([moduleId])
+  @@index([commitSha])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model DeploymentLog {
+  id           String     @id @default(uuid())
+  deploymentId String
+  deployment   Deployment @relation(fields: [deploymentId], references: [id], onDelete: Cascade)
+  stage        String     // "CLONING" | "INSTALLING" | "VALIDATING" | "BUILDING" | "DEPLOYING" | "INFO" | "ERROR"
+  message      String
+  level        String     @default("info") // "info" | "warn" | "error" | "success"
+  timestamp    DateTime   @default(now())
+
+  @@index([deploymentId])
+  @@index([timestamp])
 }
 
 model ModuleSync {
@@ -96,17 +169,27 @@ model ModuleSync {
 }
 
 model ModuleVersion {
-  id             String   @id @default(uuid())
+  id             String      @id @default(uuid())
   moduleId       String
-  module         Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  module         Module      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   version        String
-  moduleJson     String?
+  commitSha      String?
+  branch         String?     @default("main")
+  commitMessage  String?
+  author         String?
+  buildStatus    String      @default("SUCCESS") // "SUCCESS" | "FAILED"
   zipStoragePath String?
+  moduleJson     String?
   changelog      String?
-  createdAt      DateTime @default(now())
+  changedFiles   String?     @default("[]") // JSON string array
+  deploymentId   String?
+  deployment     Deployment? @relation(fields: [deploymentId], references: [id], onDelete: SetNull)
+  isPublished    Boolean     @default(true)
+  createdAt      DateTime    @default(now())
 
   @@unique([moduleId, version])
   @@index([moduleId])
+  @@index([deploymentId])
 }
 
 model Project {

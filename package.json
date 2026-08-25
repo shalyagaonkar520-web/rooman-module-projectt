@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "ModuleForge - Reusable Software Module Platform",
   "private": true,
+  "workspaces": [
+    "server",
+    "client"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "build": "npm run build --prefix server && npm run build --prefix client",
@@ -10,6 +14,7 @@
     "start": "npm run start --prefix server"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.3"
   }
 }

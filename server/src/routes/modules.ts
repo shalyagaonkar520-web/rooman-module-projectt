@@ -7,6 +7,12 @@ import axios from 'axios';
 import { prisma } from '../prisma';
 import { validateZipBuffer } from '../validator';
 import { gitService } from '../services/gitService';
+import {
+  registerWebhook,
+  deleteWebhook,
+  getWebhookStatus,
+  getWebhookUrl,
+} from '../services/githubWebhookService';
 
 export const modulesRouter = Router();
 
@@ -719,6 +725,101 @@ modulesRouter.get('/:id/sync-history', async (req, res) => {
     });
 
     res.json(syncLogs);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/modules/:id/webhook-status - Check whether a GitHub webhook is registered
+modulesRouter.get('/:id/webhook-status', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const module = await prisma.module.findFirst({
+      where: { OR: [{ id }, { slug: id }] },
+    });
+
+    if (!module) {
+      return res.status(404).json({ error: 'Module not found' });
+    }
+
+    if (module.sourceType !== 'github' || !module.githubOwner || !module.githubRepo) {
+      return res.json({
+        registered: false,
+        reason: 'Module is not connected to GitHub',
+      });
+    }
+
+    const status = await getWebhookStatus(module.id);
+    return res.json({
+      ...status,
+      webhookEndpoint: getWebhookUrl(),
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /api/modules/:id/register-webhook - Register a GitHub push webhook
+modulesRouter.post('/:id/register-webhook', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const module = await prisma.module.findFirst({
+      where: { OR: [{ id }, { slug: id }] },
+    });
+
+    if (!module) {
+      return res.status(404).json({ error: 'Module not found' });
+    }
+
+    if (module.sourceType !== 'github' || !module.githubOwner || !module.githubRepo) {
+      return res.status(400).json({ error: 'Module must be linked to a GitHub repository' });
+    }
+
+    const result = await registerWebhook(module.id);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    return res.json({
+      success: true,
+      alreadyRegistered: result.alreadyRegistered ?? false,
+      webhookId: result.webhookId,
+      webhookUrl: result.webhookUrl,
+      message: result.alreadyRegistered
+        ? 'Webhook was already registered on GitHub'
+        : `Webhook registered — GitHub will now push events to ${result.webhookUrl}`,
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE /api/modules/:id/webhook - Remove the GitHub push webhook
+modulesRouter.delete('/:id/webhook', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const module = await prisma.module.findFirst({
+      where: { OR: [{ id }, { slug: id }] },
+    });
+
+    if (!module) {
+      return res.status(404).json({ error: 'Module not found' });
+    }
+
+    const result = await deleteWebhook(module.id);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    return res.json({
+      success: true,
+      message: 'GitHub webhook removed successfully',
+    });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

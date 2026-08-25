@@ -5,6 +5,7 @@ npm-debug.log*
 # Build outputs
 client/dist/
 server/dist/
+.vercel/
 
 # Database files
 server/dev.db

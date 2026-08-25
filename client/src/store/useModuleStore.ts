@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import { Module, Category, ValidationResult, ModuleMetadataInput } from '../types';
 
+interface WebhookStatusResult {
+  registered: boolean;
+  webhookId?: string;
+  webhookUrl?: string;
+  active?: boolean;
+  tokenMissing?: boolean;
+  error?: string;
+}
+
 interface ModuleState {
   modules: Module[];
   categories: Category[];
@@ -25,6 +34,10 @@ interface ModuleState {
   syncModule: (id: string) => Promise<{ success: boolean; module?: Module; error?: string }>;
   fetchModuleSyncHistory: (id: string) => Promise<any[]>;
   updateRuntimeConfig: (id: string, config: any) => Promise<{ success: boolean; module?: Module; error?: string }>;
+  // GitHub webhook management
+  fetchWebhookStatus: (id: string) => Promise<WebhookStatusResult>;
+  registerWebhook: (id: string) => Promise<{ success: boolean; webhookId?: string; webhookUrl?: string; alreadyRegistered?: boolean; error?: string }>;
+  deleteWebhook: (id: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const API_BASE = '/api';
@@ -212,6 +225,50 @@ export const useModuleStore = create<ModuleState>((set, get) => ({
       }
       get().fetchModules();
       return { success: true, module: data.module };
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
+  },
+
+  // ── GitHub webhook management ──────────────────────────────────────────────
+
+  fetchWebhookStatus: async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/modules/${id}/webhook-status`);
+      const data = await res.json();
+      if (!res.ok) return { registered: false, error: data.error || 'Failed to fetch webhook status' };
+      return data as WebhookStatusResult;
+    } catch (e: any) {
+      return { registered: false, error: e.message };
+    }
+  },
+
+  registerWebhook: async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/modules/${id}/register-webhook`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Failed to register webhook' };
+      return {
+        success: true,
+        webhookId: data.webhookId,
+        webhookUrl: data.webhookUrl,
+        alreadyRegistered: data.alreadyRegistered ?? false,
+      };
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
+  },
+
+  deleteWebhook: async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/modules/${id}/webhook`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Failed to delete webhook' };
+      return { success: true };
     } catch (e: any) {
       return { success: false, error: e.message };
     }

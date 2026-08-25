@@ -1,20 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layers, Zap, Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
+import { Layers, Lock, Mail, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { loginDevMode, isDevMode } = useAuthStore();
+  const { login, register } = useAuthStore();
 
-  const [email, setEmail] = useState('developer@moduleforge.io');
-  const [name, setName] = useState('Dev Architect');
   const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    loginDevMode(name, email);
-    navigate('/dashboard');
+    setErrorMsg(null);
+    setIsSubmitting(true);
+
+    const result = isRegister
+      ? await register(name, email, password)
+      : await login(email, password);
+
+    setIsSubmitting(false);
+
+    if (result.success) {
+      navigate('/dashboard', { replace: true });
+    } else {
+      setErrorMsg(result.error ?? 'Authentication failed');
+    }
   };
 
   return (
@@ -31,25 +46,20 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight">
-            {isRegister ? 'Create ModuleForge Account' : 'Welcome back to ModuleForge'}
+            {isRegister ? 'Create your account' : 'Welcome back'}
           </h1>
-          <p className="text-xs text-slate-400 font-mono">
-            Platform for Reusable Software Modules
-          </p>
+          <p className="text-xs text-slate-400 font-mono">ModuleForge — Reusable Software Module Platform</p>
         </div>
 
-        {/* Dev Mode Banner */}
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs space-y-1.5">
-          <div className="flex items-center gap-2 font-bold text-amber-400">
-            <Zap className="w-4 h-4 text-amber-400" />
-            <span>Development Mode Active</span>
+        {/* Error banner */}
+        {errorMsg && (
+          <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMsg}</span>
           </div>
-          <p className="text-[11px] text-amber-400/80 leading-relaxed">
-            Supabase Auth environment variables are unconfigured. The application is operating in zero-config local development mode.
-          </p>
-        </div>
+        )}
 
-        {/* Auth Form Box */}
+        {/* Auth Form */}
         <form onSubmit={handleSubmit} className="p-8 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 shadow-2xl">
           {isRegister && (
             <div className="space-y-1.5">
@@ -58,7 +68,7 @@ export const LoginPage: React.FC = () => {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Developer Name"
+                placeholder="Your name"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                 required
               />
@@ -73,7 +83,7 @@ export const LoginPage: React.FC = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="developer@moduleforge.io"
+                placeholder="you@example.com"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                 required
               />
@@ -86,26 +96,35 @@ export const LoginPage: React.FC = () => {
               <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 type="password"
-                defaultValue="password123"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                 required
+                minLength={6}
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition"
+            disabled={isSubmitting}
+            className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition"
           >
-            <span>{isRegister ? 'Sign Up' : 'Sign In'} (Dev Mode)</span>
-            <ArrowRight className="w-4 h-4" />
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                <span>{isRegister ? 'Create Account' : 'Sign In'}</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
 
           <div className="pt-2 text-center text-xs text-slate-400">
             <button
               type="button"
-              onClick={() => setIsRegister(!isRegister)}
+              onClick={() => { setIsRegister(!isRegister); setErrorMsg(null); }}
               className="text-indigo-400 hover:text-indigo-300 font-semibold"
             >
               {isRegister ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}

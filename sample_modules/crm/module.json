@@ -1,0 +1,36 @@
+{
+  "name": "CRM",
+  "slug": "crm",
+  "version": "1.0.0",
+  "description": "Comprehensive customer relationship management module with contact tracking, leads pipeline, and deal management.",
+  "author": "ModuleForge Team",
+  "category": "CRM",
+  "technologies": [
+    "React",
+    "TypeScript",
+    "Node.js",
+    "PostgreSQL"
+  ],
+  "entryPoints": {
+    "frontend": "frontend/index.tsx",
+    "backend": "backend/routes.ts"
+  },
+  "routes": [
+    "/crm",
+    "/crm/leads",
+    "/crm/contacts"
+  ],
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "customer",
+      "type": "CustomerObject"
+    },
+    {
+      "name": "lead",
+      "type": "LeadObject"
+    }
+  ],
+  "dependencies": [],
+  "description_for_ai": "This CRM module handles customer management, leads pipeline, contact history, and sales deal tracking. Coding agents should mount the frontend views at /crm and bind backend routes from backend/routes.ts into the host API server."
+}

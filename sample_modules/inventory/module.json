@@ -1,0 +1,31 @@
+{
+  "name": "Inventory",
+  "slug": "inventory",
+  "version": "1.0.0",
+  "description": "Stock management and product catalog module with SKU tracking, reorder alerts, and warehouse allocation.",
+  "author": "SupplyChain Lab",
+  "category": "Inventory",
+  "technologies": [
+    "React",
+    "Node.js",
+    "PostgreSQL"
+  ],
+  "entryPoints": {
+    "frontend": "frontend/InventoryGrid.tsx",
+    "backend": "backend/stockController.ts"
+  },
+  "routes": [
+    "/inventory",
+    "/inventory/products",
+    "/inventory/warehouses"
+  ],
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "product_stock",
+      "type": "StockItem"
+    }
+  ],
+  "dependencies": [],
+  "description_for_ai": "Inventory tracks product stock levels, SKU items, low-stock threshold triggers, and warehouse location management."
+}

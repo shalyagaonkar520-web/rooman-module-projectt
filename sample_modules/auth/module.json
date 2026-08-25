@@ -1,0 +1,36 @@
+{
+  "name": "Authentication",
+  "slug": "authentication",
+  "version": "1.0.0",
+  "description": "Robust JWT & OAuth authentication module with role-based authorization (RBAC) and session middleware.",
+  "author": "SecOps Core",
+  "category": "Authentication",
+  "technologies": [
+    "React",
+    "Node.js",
+    "JWT",
+    "Bcrypt"
+  ],
+  "entryPoints": {
+    "frontend": "frontend/AuthForm.tsx",
+    "backend": "backend/jwtStrategy.ts"
+  },
+  "routes": [
+    "/auth/login",
+    "/auth/register",
+    "/auth/reset"
+  ],
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "auth_token",
+      "type": "JWTToken"
+    },
+    {
+      "name": "user_session",
+      "type": "SessionUser"
+    }
+  ],
+  "dependencies": [],
+  "description_for_ai": "Authentication provides login UI, JWT token verification middleware, password hashing, and role checks (admin vs member)."
+}

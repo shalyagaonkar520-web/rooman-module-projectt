@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Github, RefreshCw, CheckCircle2, ExternalLink, History, GitCommit, User } from 'lucide-react';
+import { Github, RefreshCw, CheckCircle2, ExternalLink, History, GitCommit, User, Zap, ZapOff, Loader2, AlertTriangle, Trash2 } from 'lucide-react';
 import { Module, ModuleSyncLog } from '../types';
 import { useModuleStore } from '../store/useModuleStore';
 
@@ -346,7 +346,7 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
       {message && (
         <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono flex items-center gap-2 animate-fade-in">
           <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
-          <span>{message}</span>
+          <span>{message.text}</span>
         </div>
       )}
 

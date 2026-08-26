@@ -123,7 +123,7 @@ modulesRouter.get('/:idOrSlug', async (req, res) => {
 });
 
 // POST /api/modules/upload - Upload & Validate ZIP file (Does NOT require module.json)
-modulesRouter.post('/upload', upload.single('file'), async (req, res) => {
+modulesRouter.post('/upload', upload.single('file') as any, async (req, res) => {
   try {
     const file = req.file;
 

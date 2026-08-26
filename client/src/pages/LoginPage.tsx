@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/useAuthStore';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { loginDevMode } = useAuthStore();
+  const { login, register } = useAuthStore();
 
   const [isRegister, setIsRegister] = useState(false);
   const [name, setName] = useState('');

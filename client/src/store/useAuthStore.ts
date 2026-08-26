@@ -47,6 +47,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  isDevMode: boolean;
 
   checkAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
@@ -54,11 +55,16 @@ interface AuthState {
   logout: () => Promise<void>;
 }
 
+const isLocalAuthFallback = !(
+  Boolean(import.meta.env.VITE_SUPABASE_URL) && Boolean(import.meta.env.VITE_SUPABASE_ANON_KEY)
+);
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
   error: null,
+  isDevMode: isLocalAuthFallback,
 
   // ── Restore session on page load ─────────────────────────────────────────
   checkAuth: async () => {

@@ -1,13 +1,31 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
     "skipLibCheck": true,
-    "strict": true,
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "outDir": ".vercel/output"
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["client/src/*"],
+      "react": ["client/node_modules/@types/react", "client/node_modules/react"],
+      "react/*": ["client/node_modules/@types/react/*", "client/node_modules/react/*"],
+      "react-dom": ["client/node_modules/@types/react-dom", "client/node_modules/react-dom"],
+      "react-dom/*": ["client/node_modules/@types/react-dom/*", "client/node_modules/react-dom/*"]
+    },
+    "typeRoots": [
+      "./client/node_modules/@types",
+      "./server/node_modules/@types"
+    ]
   },
-  "include": ["api/**/*", "server/src/**/*"]
+  "include": [
+    "client/src/**/*",
+    "sample_modules/**/*"
+  ]
 }

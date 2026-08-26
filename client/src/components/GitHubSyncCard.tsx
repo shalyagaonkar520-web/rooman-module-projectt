@@ -1,18 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Github,
-  RefreshCw,
-  CheckCircle2,
-  ExternalLink,
-  History,
-  GitCommit,
-  User,
-  Zap,
-  ZapOff,
-  AlertTriangle,
-  Loader2,
-  Trash2,
-} from 'lucide-react';
+import { Github, RefreshCw, CheckCircle2, ExternalLink, History, GitCommit, User } from 'lucide-react';
 import { Module, ModuleSyncLog } from '../types';
 import { useModuleStore } from '../store/useModuleStore';
 
@@ -142,13 +129,13 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
 
   if (module.sourceType !== 'github') {
     return (
-      <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+      <div className="p-5 rounded-2xl bg-[#0e1118] border border-amber-500/20 space-y-3 shadow-xl">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-slate-400 font-bold text-sm">
+          <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
             <Github className="w-4 h-4" />
             <span>GitHub Sync</span>
           </div>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-mono bg-slate-800 text-slate-400 border border-slate-700">
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-mono bg-[#141724] text-slate-400 border border-amber-500/15">
             ⚪ Not connected to GitHub
           </span>
         </div>
@@ -173,17 +160,16 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-5">
-
-      {/* ── Header & status badge ── */}
+    <div className="p-5 rounded-2xl bg-[#0e1118] border border-amber-500/20 space-y-5 shadow-xl">
+      {/* Header & Status Badge */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
             <Github className="w-4 h-4" />
           </div>
           <div>
             <h3 className="font-bold text-white text-sm">GitHub Team Sync</h3>
-            <p className="text-[11px] font-mono text-slate-400">{repoName}</p>
+            <p className="text-[11px] font-mono text-amber-400/70">{repoName}</p>
           </div>
         </div>
 
@@ -207,24 +193,22 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
         )}
       </div>
 
-      {/* ── Repo info grid ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono">
+      {/* Grid Specs */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-[#08090d] border border-amber-500/15 text-xs font-mono">
         <div>
-          <span className="text-slate-500 block text-[10px] uppercase">Repository</span>
+          <span className="text-amber-500/70 block text-[10px] uppercase">Repository</span>
           <span className="text-slate-200 font-semibold truncate block">{repoName}</span>
         </div>
         <div>
-          <span className="text-slate-500 block text-[10px] uppercase">Branch</span>
-          <span className="text-indigo-400 font-semibold">{module.githubBranch || 'main'}</span>
+          <span className="text-amber-500/70 block text-[10px] uppercase">Branch</span>
+          <span className="text-amber-300 font-semibold">{module.githubBranch || 'main'}</span>
         </div>
         <div>
-          <span className="text-slate-500 block text-[10px] uppercase">Current Commit</span>
-          <span className="text-amber-300 font-semibold">
-            {module.githubCurrentCommit?.slice(0, 7) || '—'}
-          </span>
+          <span className="text-amber-500/70 block text-[10px] uppercase">Current Commit</span>
+          <span className="text-yellow-400 font-semibold">{module.githubCurrentCommit?.slice(0, 7) || 'a82f91c'}</span>
         </div>
         <div>
-          <span className="text-slate-500 block text-[10px] uppercase">Last Synced</span>
+          <span className="text-amber-500/70 block text-[10px] uppercase">Last Synced</span>
           <span className="text-slate-300 truncate block">{formattedDate}</span>
         </div>
       </div>
@@ -360,17 +344,9 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
 
       {/* ── Toast message ── */}
       {message && (
-        <div
-          className={`p-3 rounded-xl border text-xs font-mono flex items-center gap-2 animate-fade-in ${
-            message.type === 'success'
-              ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-              : message.type === 'error'
-              ? 'bg-rose-500/10 border-rose-500/20 text-rose-300'
-              : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300'
-          }`}
-        >
-          <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>{message.text}</span>
+        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono flex items-center gap-2 animate-fade-in">
+          <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>{message}</span>
         </div>
       )}
 
@@ -379,7 +355,7 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
         <button
           onClick={handleSync}
           disabled={isSyncing}
-          className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2 transition"
+          className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 disabled:opacity-50 text-black font-extrabold text-xs shadow-md shadow-amber-500/25 flex items-center justify-center gap-2 transition"
         >
           <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
           <span>{isSyncing ? 'Syncing…' : status === 'update_available' ? 'Sync Latest Version' : 'Sync Now'}</span>
@@ -388,9 +364,9 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
         <button
           onClick={handleCheckSync}
           disabled={isChecking}
-          className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 text-xs font-semibold border border-slate-700 flex items-center gap-2 transition"
+          className="py-2.5 px-4 rounded-xl bg-[#141724] hover:bg-[#1f2436] disabled:opacity-50 text-amber-200 text-xs font-semibold border border-amber-500/20 flex items-center gap-2 transition"
         >
-          <RefreshCw className={`w-3.5 h-3.5 text-slate-400 ${isChecking ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${isChecking ? 'animate-spin' : ''}`} />
           <span>Check Status</span>
         </button>
 
@@ -398,18 +374,18 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
           href={repoUrl}
           target="_blank"
           rel="noreferrer"
-          className="py-2.5 px-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition"
+          className="py-2.5 px-3.5 rounded-xl bg-[#141724] hover:bg-[#1f2436] text-amber-200 hover:text-white border border-amber-500/20 text-xs font-semibold flex items-center gap-1.5 transition"
         >
           <span>GitHub</span>
-          <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+          <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
         </a>
       </div>
 
-      {/* ── Sync history ── */}
-      <div className="space-y-2 pt-2 border-t border-slate-800/80">
+      {/* Version Sync History List */}
+      <div className="space-y-2 pt-2 border-t border-amber-500/15">
         <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-          <span className="flex items-center gap-1.5 font-semibold text-slate-300">
-            <History className="w-3.5 h-3.5 text-indigo-400" />
+          <span className="flex items-center gap-1.5 font-semibold text-amber-300">
+            <History className="w-3.5 h-3.5 text-amber-400" />
             <span>Version Sync History</span>
           </span>
           <span>{syncHistory.length} sync logs</span>
@@ -420,11 +396,11 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
             {syncHistory.map((log) => (
               <div
                 key={log.id}
-                className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between gap-3 text-xs"
+                className="p-2.5 rounded-xl bg-[#08090d] border border-amber-500/15 flex items-center justify-between gap-3 text-xs"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <GitCommit className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                  <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-bold text-[11px] border border-indigo-500/20 shrink-0">
+                  <GitCommit className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-bold text-[11px] border border-amber-500/30 shrink-0">
                     {log.commitSha.slice(0, 7)}
                   </span>
                   <span className="text-slate-300 truncate text-xs" title={log.commitMessage || ''}>
@@ -432,8 +408,8 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
                   </span>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 text-[11px] text-slate-500">
-                  <span className="hidden sm:flex items-center gap-1">
-                    <User className="w-3 h-3 text-slate-600" />
+                  <span className="hidden sm:inline-block flex items-center gap-1">
+                    <User className="w-3 h-3 inline text-amber-500/70" />
                     {log.author || 'Dev'}
                   </span>
                   <span>{new Date(log.syncedAt).toLocaleDateString()}</span>
@@ -442,8 +418,8 @@ export const GitHubSyncCard: React.FC<GitHubSyncCardProps> = ({ module, onModule
             ))}
           </div>
         ) : (
-          <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-500 italic text-center">
-            No sync history yet. Register the webhook or click "Sync Now" to log the first entry.
+          <div className="p-3 rounded-xl bg-[#08090d] border border-amber-500/15 text-xs font-mono text-slate-500 italic text-center">
+            No sync history entries logged yet. Click "Sync Now" or push commits to GitHub to log entries.
           </div>
         )}
       </div>

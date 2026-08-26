@@ -1,8 +1,9 @@
 import { Response } from 'express';
+import { EventEmitter } from 'events';
 
 export interface RealtimeProjectEvent {
-  type: 'MODULE_UPDATED' | 'ACTIVITY_CREATED' | 'PROJECT_SYNCED' | 'ROLLBACK_COMPLETED' | 'MEMBER_JOINED';
-  projectId: string;
+  type: 'MODULE_UPDATED' | 'ACTIVITY_CREATED' | 'PROJECT_SYNCED' | 'ROLLBACK_COMPLETED' | 'MEMBER_JOINED' | string;
+  projectId?: string;
   moduleId?: string;
   moduleName?: string;
   commitSha?: string;
@@ -14,8 +15,31 @@ export interface RealtimeProjectEvent {
 }
 
 class RealtimeEventManager {
+  private emitter = new EventEmitter();
   // Map of projectId -> Set of SSE Response streams
   private projectClients = new Map<string, Set<Response>>();
+
+  constructor() {
+    this.emitter.setMaxListeners(100);
+  }
+
+  // General event subscription
+  public subscribe(listener: (event: any) => void): () => void {
+    this.emitter.on('event', listener);
+    return () => {
+      this.emitter.off('event', listener);
+    };
+  }
+
+  // General event broadcast
+  public broadcast(type: string, data: any) {
+    const payload = {
+      type,
+      ...data,
+      timestamp: data.timestamp || new Date().toISOString(),
+    };
+    this.emitter.emit('event', payload);
+  }
 
   // Register client connection for a project
   public registerClient(projectId: string, res: Response): () => void {

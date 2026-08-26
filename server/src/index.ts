@@ -8,6 +8,7 @@ import { categoriesRouter } from './routes/categories';
 import { webhooksRouter } from './routes/webhooks';
 import { runnerRouter } from './routes/runner';
 import gitRouter from './routes/git';
+import { moduleGitRouter } from './routes/moduleGit';
 
 dotenv.config();
 
@@ -69,6 +70,7 @@ app.use('/api/webhooks', webhooksRouter);
 app.use('/api/github/webhook', webhooksRouter);
 app.use('/api/runner', runnerRouter);
 app.use('/api/git', gitRouter);
+app.use('/api', moduleGitRouter);
 
 // ── 404 fallback for unknown API routes ──────────────────────────────────────
 app.use('/api/*', (_req, res) => {

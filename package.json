@@ -10,11 +10,9 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "build": "npm run build --prefix server && npm run build --prefix client",
-    "build:vercel": "npm --prefix client run build",
-    "start": "npm run start --prefix server",
-    "db:push": "npm run prisma:push --prefix server",
-    "db:generate": "npm run prisma:generate --prefix server",
-    "postinstall": "npm run prisma:generate --prefix server"
+    "postinstall": "npm run prisma:generate --prefix server",
+    "seed": "npm run seed --prefix server",
+    "start": "npm run start --prefix server"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

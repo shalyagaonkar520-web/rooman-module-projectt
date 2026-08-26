@@ -7,14 +7,29 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { loginDevMode } = useAuthStore();
 
-  const [email, setEmail] = useState('developer@moduleforge.io');
-  const [name, setName] = useState('Dev Architect');
   const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    loginDevMode(name, email);
-    navigate('/dashboard');
+    setErrorMsg(null);
+    setIsSubmitting(true);
+
+    const result = isRegister
+      ? await register(name, email, password)
+      : await login(email, password);
+
+    setIsSubmitting(false);
+
+    if (result.success) {
+      navigate('/dashboard', { replace: true });
+    } else {
+      setErrorMsg(result.error ?? 'Authentication failed');
+    }
   };
 
   return (
@@ -86,10 +101,12 @@ export const LoginPage: React.FC = () => {
               <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-amber-400/70" />
               <input
                 type="password"
-                defaultValue="password123"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full bg-[#07090e] border border-amber-500/20 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 font-mono"
                 required
+                minLength={6}
               />
             </div>
           </div>

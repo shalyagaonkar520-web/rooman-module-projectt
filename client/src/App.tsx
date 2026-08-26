@@ -18,6 +18,27 @@ import { useAuthStore } from './store/useAuthStore';
 import { useProjectStore } from './store/useProjectStore';
 import { FolderGit2, Sparkles, X } from 'lucide-react';
 
+// ── Auth guard: redirects to /login if not authenticated ─────────────────────
+const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuthStore();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// ── Main App ──────────────────────────────────────────────────────────────────
 export const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -32,10 +53,13 @@ export const App: React.FC = () => {
     checkAuth();
   }, [checkAuth]);
 
-  const isPublicRoute = location.pathname === '/' || location.pathname === '/login';
+  const isPublicRoute =
+    location.pathname === '/' || location.pathname === '/login';
   const isBuilderRoute = location.pathname.startsWith('/builder/');
   const isWorkspaceRoute = location.pathname.includes('/workspace');
-  const isInviteRoute = location.pathname === '/join-project' || location.pathname.startsWith('/invites/');
+  const isInviteRoute =
+    location.pathname === '/join-project' ||
+    location.pathname.startsWith('/invites/');
 
   const handleQuickCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +73,7 @@ export const App: React.FC = () => {
     }
   };
 
-  // Dedicated full screen layout for Project Invite acceptance
+  // ── Invite acceptance — public, full screen ───────────────────────────────
   if (isInviteRoute) {
     return (
       <Routes>
@@ -59,25 +83,39 @@ export const App: React.FC = () => {
     );
   }
 
-  // Dedicated full screen layout for Git Module Workspace
+  // ── Git workspace — protected, full screen ────────────────────────────────
   if (isWorkspaceRoute) {
     return (
       <Routes>
-        <Route path="/projects/:projectId/modules/:pmId/workspace" element={<ModuleWorkspacePage />} />
+        <Route
+          path="/projects/:projectId/modules/:pmId/workspace"
+          element={
+            <RequireAuth>
+              <ModuleWorkspacePage />
+            </RequireAuth>
+          }
+        />
       </Routes>
     );
   }
 
-  // Dedicated full screen layout for Visual Builder
+  // ── Visual builder — protected, full screen ───────────────────────────────
   if (isBuilderRoute) {
     return (
       <Routes>
-        <Route path="/builder/:projectId" element={<VisualBuilderPage />} />
+        <Route
+          path="/builder/:projectId"
+          element={
+            <RequireAuth>
+              <VisualBuilderPage />
+            </RequireAuth>
+          }
+        />
       </Routes>
     );
   }
 
-  // Public Landing & Login layout
+  // ── Public routes (landing + login) ──────────────────────────────────────
   if (isPublicRoute) {
     return (
       <Routes>
@@ -87,7 +125,7 @@ export const App: React.FC = () => {
     );
   }
 
-  // Standard Developer Dashboard App Layout with Sidebar & Navbar
+  // ── Protected dashboard layout ────────────────────────────────────────────
   return (
     <div className="flex min-h-screen bg-[#060709] text-slate-100 selection:bg-amber-500 selection:text-black">
       <Sidebar />
@@ -173,8 +211,8 @@ export const App: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </RequireAuth>
   );
 };

@@ -73,18 +73,18 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
-            <FolderGit2 className="w-8 h-8 text-indigo-400" />
+          <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+            <FolderGit2 className="w-8 h-8 text-amber-400" />
             <span>My Projects</span>
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Visual project compositions with Team Live Webhook Sync and Privacy settings.
+            Visual project architectures with Team Live Webhook Synchronization and Governance.
           </p>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition"
+          className="px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:via-yellow-400 hover:to-amber-500 text-black text-xs font-extrabold shadow-lg shadow-amber-500/25 flex items-center gap-2 transition"
         >
           <Plus className="w-4 h-4" />
           <span>New Project</span>
@@ -92,15 +92,15 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
       </div>
 
       {projects.length === 0 ? (
-        <div className="py-20 text-center glass-panel rounded-2xl border border-slate-800 p-8 space-y-3 max-w-md mx-auto">
-          <FolderGit2 className="w-10 h-10 text-slate-600 mx-auto" />
+        <div className="py-20 text-center glass-gold-panel rounded-3xl border border-amber-500/20 p-8 space-y-3 max-w-md mx-auto shadow-2xl">
+          <FolderGit2 className="w-10 h-10 text-amber-500/40 mx-auto" />
           <h3 className="text-lg font-bold text-white">No Projects Yet</h3>
           <p className="text-xs text-slate-400">
             Create your first visual project composition and start adding modules.
           </p>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold"
+            className="px-4 py-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold rounded-xl text-xs"
           >
             Create Project
           </button>
@@ -114,28 +114,28 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
             return (
               <div
                 key={project.id}
-                className="glass-card rounded-2xl p-6 border border-slate-800 flex flex-col justify-between space-y-4 group hover:border-indigo-500/40"
+                className="glass-gold-card rounded-2xl p-6 border border-amber-500/20 flex flex-col justify-between space-y-4 group hover:border-amber-400/50 transition-all shadow-xl shadow-black/80"
               >
                 <div className="space-y-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-bold text-lg text-white group-hover:text-indigo-300 transition">
+                      <h3 className="font-bold text-lg text-white group-hover:text-amber-300 transition">
                         {project.name}
                       </h3>
                       <div className="flex items-center gap-2 pt-1 font-mono text-[10px]">
                         <span className={`px-2 py-0.5 rounded-full border flex items-center gap-1 ${
                           isTeam
-                            ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-                            : 'bg-slate-800 text-slate-400 border-slate-700'
+                            ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                            : 'bg-[#181c28] text-slate-400 border-amber-500/15'
                         }`}>
-                          {isTeam ? <Users className="w-3 h-3" /> : <User className="w-3 h-3" />}
+                          {isTeam ? <Users className="w-3 h-3 text-amber-400" /> : <User className="w-3 h-3" />}
                           <span className="capitalize">{project.projectType || 'individual'}</span>
                         </span>
 
                         <span className={`px-2 py-0.5 rounded-full border flex items-center gap-1 ${
                           isPrivate
-                            ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
-                            : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                            ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/25'
+                            : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
                         }`}>
                           {isPrivate ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
                           <span className="capitalize">{project.visibility || 'private'}</span>
@@ -143,7 +143,7 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
                       </div>
                     </div>
 
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-amber-500/10 text-amber-300 border border-amber-500/25">
                       {project.modules?.length || 0} modules
                     </span>
                   </div>
@@ -153,16 +153,16 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
                   </p>
                 </div>
 
-                <div className="pt-4 border-t border-slate-800/80 space-y-3">
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono">
-                    <Clock className="w-3.5 h-3.5" />
+                <div className="pt-4 border-t border-amber-500/15 space-y-3">
+                  <div className="flex items-center gap-1.5 text-[11px] text-amber-400/60 font-mono">
+                    <Clock className="w-3.5 h-3.5 text-amber-500/70" />
                     <span>Updated {new Date(project.updatedAt).toLocaleDateString()}</span>
                   </div>
 
                   <div className="flex items-center justify-between gap-2">
                     <button
                       onClick={() => navigate(`/builder/${project.id}`)}
-                      className="flex-1 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-semibold transition flex items-center justify-center gap-1.5"
+                      className="flex-1 py-2 rounded-xl bg-amber-500/15 hover:bg-gradient-to-r hover:from-amber-400 hover:to-yellow-500 text-amber-300 hover:text-black border border-amber-500/30 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm"
                     >
                       <Terminal className="w-3.5 h-3.5" />
                       <span>Open Project</span>
@@ -170,16 +170,16 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
 
                     <button
                       onClick={() => setSelectedExportProject(project)}
-                      className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition"
+                      className="px-3 py-2 rounded-xl bg-[#141724] hover:bg-[#1f2436] text-amber-200 hover:text-white border border-amber-500/20 text-xs font-semibold flex items-center gap-1.5 transition"
                       title="Export Project & Run Prompt"
                     >
-                      <Download className="w-3.5 h-3.5 text-indigo-400" />
+                      <Download className="w-3.5 h-3.5 text-amber-400" />
                       <span>Export & Run</span>
                     </button>
 
                     <button
                       onClick={() => deleteProject(project.id)}
-                      className="p-2 rounded-xl bg-slate-800 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-slate-700 transition"
+                      className="p-2 rounded-xl bg-[#141724] hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-amber-500/15 transition"
                       title="Delete Project"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -202,10 +202,10 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
 
       {/* New Project Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-xl space-y-5 shadow-2xl my-8">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-              <FolderGit2 className="w-5 h-5 text-indigo-400" />
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-[#0e1118] border border-amber-500/30 rounded-3xl p-6 w-full max-w-xl space-y-5 shadow-2xl shadow-black my-8">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2 border-b border-amber-500/15 pb-3">
+              <FolderGit2 className="w-5 h-5 text-amber-400" />
               <span>Create New Project</span>
             </h2>
 
@@ -213,24 +213,24 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
               {/* Project Name & Description */}
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Project Name *</label>
+                  <label className="text-xs font-semibold text-amber-200/90">Project Name *</label>
                   <input
                     type="text"
                     value={newProjectName}
                     onChange={(e) => setNewProjectName(e.target.value)}
                     placeholder="e.g. My Business Application"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[#08090d] border border-amber-500/20 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
                     required
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Description</label>
+                  <label className="text-xs font-semibold text-amber-200/90">Description</label>
                   <textarea
                     value={newProjectDesc}
                     onChange={(e) => setNewProjectDesc(e.target.value)}
                     placeholder="Integrated multi-module enterprise platform..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 h-20"
+                    className="w-full bg-[#08090d] border border-amber-500/20 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 h-20"
                   />
                 </div>
               </div>
@@ -239,18 +239,18 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Project Mode Selector */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-300">Project Mode</label>
+                  <label className="text-xs font-semibold text-amber-200/90">Project Mode</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setProjectType('individual')}
                       className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition ${
                         projectType === 'individual'
-                          ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-sm'
-                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                          ? 'bg-amber-500/20 border-amber-400 text-white shadow-sm'
+                          : 'bg-[#08090d] border-amber-500/15 text-slate-400 hover:text-slate-200'
                       }`}
                     >
-                      <User className="w-4 h-4 text-indigo-400" />
+                      <User className="w-4 h-4 text-amber-400" />
                       <span>Individual</span>
                     </button>
 
@@ -259,11 +259,11 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
                       onClick={() => setProjectType('team')}
                       className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition ${
                         projectType === 'team'
-                          ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-sm'
-                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                          ? 'bg-amber-500/20 border-amber-400 text-white shadow-sm'
+                          : 'bg-[#08090d] border-amber-500/15 text-slate-400 hover:text-slate-200'
                       }`}
                     >
-                      <Users className="w-4 h-4 text-purple-400" />
+                      <Users className="w-4 h-4 text-yellow-400" />
                       <span>Team Project</span>
                     </button>
                   </div>
@@ -271,18 +271,18 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
 
                 {/* Privacy Visibility Selector */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-300">Visibility</label>
+                  <label className="text-xs font-semibold text-amber-200/90">Visibility</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setVisibility('private')}
                       className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition ${
                         visibility === 'private'
-                          ? 'bg-amber-500/20 border-amber-500 text-white shadow-sm'
-                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                          ? 'bg-yellow-500/20 border-yellow-400 text-white shadow-sm'
+                          : 'bg-[#08090d] border-amber-500/15 text-slate-400 hover:text-slate-200'
                       }`}
                     >
-                      <Lock className="w-4 h-4 text-amber-400" />
+                      <Lock className="w-4 h-4 text-yellow-400" />
                       <span>Private</span>
                     </button>
 
@@ -291,8 +291,8 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
                       onClick={() => setVisibility('public')}
                       className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1 transition ${
                         visibility === 'public'
-                          ? 'bg-emerald-500/20 border-emerald-500 text-white shadow-sm'
-                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                          ? 'bg-emerald-500/20 border-emerald-400 text-white shadow-sm'
+                          : 'bg-[#08090d] border-amber-500/15 text-slate-400 hover:text-slate-200'
                       }`}
                     >
                       <Globe className="w-4 h-4 text-emerald-400" />
@@ -302,13 +302,13 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
                 </div>
               </div>
 
-              {/* Team Repositories Configurator (When Team Mode is Selected) */}
+              {/* Team Repositories Configurator */}
               {projectType === 'team' && (
-                <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                <div className="p-4 rounded-2xl bg-[#08090d] border border-amber-500/20 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                        <Github className="w-3.5 h-3.5 text-indigo-400" />
+                        <Github className="w-3.5 h-3.5 text-amber-400" />
                         <span>Team Member Repositories</span>
                       </h4>
                       <p className="text-[11px] text-slate-400">
@@ -318,7 +318,7 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
                     <button
                       type="button"
                       onClick={handleAddTeamRepoRow}
-                      className="px-2.5 py-1 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold flex items-center gap-1 hover:bg-indigo-600/30"
+                      className="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1 hover:bg-amber-500/25"
                     >
                       <Plus className="w-3 h-3" />
                       <span>Add Repo</span>
@@ -333,14 +333,14 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
                           value={repo.name}
                           onChange={(e) => handleUpdateTeamRepo(idx, 'name', e.target.value)}
                           placeholder="Module (e.g. CRM)"
-                          className="w-1/3 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                          className="w-1/3 bg-[#11141d] border border-amber-500/20 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
                         />
                         <input
                           type="text"
                           value={repo.githubRepository}
                           onChange={(e) => handleUpdateTeamRepo(idx, 'githubRepository', e.target.value)}
                           placeholder="company/crm"
-                          className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                          className="flex-1 bg-[#11141d] border border-amber-500/20 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
                         />
                         <button
                           type="button"
@@ -355,17 +355,17 @@ export const MyProjectsPage: React.FC<MyProjectsPageProps> = ({ onOpenCreateProj
                 </div>
               )}
 
-              <div className="flex justify-end gap-3 pt-2 border-t border-slate-800">
+              <div className="flex justify-end gap-3 pt-2 border-t border-amber-500/15">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold"
+                  className="px-4 py-2 rounded-xl bg-[#141724] text-slate-300 text-xs font-semibold hover:bg-[#1e2336] transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:via-yellow-400 hover:to-amber-500 text-black text-xs font-bold shadow-lg shadow-amber-500/25"
                 >
                   Create & Open Project
                 </button>

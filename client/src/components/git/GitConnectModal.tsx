@@ -42,22 +42,22 @@ export const GitConnectModal: React.FC<GitConnectModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200 selection:bg-amber-500 selection:text-black">
+      <div className="bg-[#0e1118] border border-amber-500/30 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden shadow-black">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-800">
+        <div className="flex items-center justify-between p-6 border-b border-amber-500/15">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
               <Github className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">Connect Git Repository</h3>
-              <p className="text-xs text-slate-400 font-mono">Module: {moduleName}</p>
+              <h3 className="text-lg font-black text-white">Connect Git Repository</h3>
+              <p className="text-xs text-amber-400/80 font-mono">Module: {moduleName}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#141724] transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -73,7 +73,7 @@ export const GitConnectModal: React.FC<GitConnectModalProps> = ({
           )}
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-slate-300">
+            <label className="block text-xs font-semibold text-amber-200">
               Repository URL <span className="text-rose-400">*</span>
             </label>
             <div className="relative">
@@ -82,7 +82,7 @@ export const GitConnectModal: React.FC<GitConnectModalProps> = ({
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
                 placeholder="https://github.com/company/auth-module"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+                className="w-full bg-[#08090d] border border-amber-500/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
                 required
               />
             </div>
@@ -92,8 +92,8 @@ export const GitConnectModal: React.FC<GitConnectModalProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
+            <label className="block text-xs font-semibold text-amber-200 flex items-center gap-1.5">
+              <GitBranch className="w-3.5 h-3.5 text-amber-400" />
               <span>Connected Branch</span>
             </label>
             <input
@@ -101,7 +101,7 @@ export const GitConnectModal: React.FC<GitConnectModalProps> = ({
               value={branch}
               onChange={(e) => setBranch(e.target.value)}
               placeholder="main"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition font-mono"
+              className="w-full bg-[#08090d] border border-amber-500/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition font-mono"
             />
             <p className="text-[11px] text-slate-400">
               ModuleForge will automatically deploy whenever pushes happen to this branch.
@@ -109,8 +109,8 @@ export const GitConnectModal: React.FC<GitConnectModalProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
+            <label className="block text-xs font-semibold text-amber-200 flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
               <span>Access Token (Optional for Private Repos)</span>
             </label>
             <input
@@ -118,15 +118,15 @@ export const GitConnectModal: React.FC<GitConnectModalProps> = ({
               value={token}
               onChange={(e) => setToken(e.target.value)}
               placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition font-mono"
+              className="w-full bg-[#08090d] border border-amber-500/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition font-mono"
             />
             <p className="text-[11px] text-slate-400">
               Required only for private repositories with `repo` read permissions. Never exposed to clients.
             </p>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-indigo-500/5 border border-indigo-500/20 text-indigo-300 text-xs flex items-start gap-2.5">
-            <Shield className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-2xl bg-[#08090d] border border-amber-500/20 text-slate-300 text-xs flex items-start gap-2.5">
+            <Shield className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
             <p className="leading-relaxed">
               Connecting will verify the repository, retrieve the latest commit, generate a secure HMAC-SHA256 webhook secret, and trigger the initial validation pipeline.
             </p>
@@ -137,18 +137,18 @@ export const GitConnectModal: React.FC<GitConnectModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition"
+              className="px-4 py-2.5 rounded-xl bg-[#141724] hover:bg-[#1e2336] text-slate-300 text-sm font-semibold transition border border-amber-500/15"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isConnecting}
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-semibold shadow-lg shadow-indigo-600/20 transition flex items-center gap-2"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:via-yellow-400 hover:to-amber-500 disabled:opacity-50 text-black text-sm font-extrabold shadow-lg shadow-amber-500/25 transition flex items-center gap-2"
             >
               {isConnecting ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
                   <span>Connecting & Verifying...</span>
                 </>
               ) : (

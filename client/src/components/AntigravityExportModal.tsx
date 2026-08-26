@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Download, Copy, Check, X, Terminal, ArrowRight, Layers, ExternalLink } from 'lucide-react';
+import { Sparkles, Download, Copy, Check, X, Terminal, ExternalLink } from 'lucide-react';
 import { Project } from '../types';
 import { useProjectStore } from '../store/useProjectStore';
 
@@ -107,25 +107,25 @@ ${moduleRuntimeSpecs}
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
-      <div className="bg-slate-900 border border-indigo-500/40 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-0 relative my-6">
+    <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto selection:bg-amber-500 selection:text-black">
+      <div className="bg-[#0e1118] border border-amber-500/30 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl space-y-0 relative my-6 shadow-black">
         {/* Header Accent Bar */}
-        <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-6 text-white relative">
+        <div className="bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 p-6 text-black relative">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 rounded-lg bg-black/20 hover:bg-black/40 text-white/80 hover:text-white transition"
+            className="absolute top-4 right-4 p-1.5 rounded-xl bg-black/20 hover:bg-black/40 text-black font-bold transition"
           >
             <X className="w-4 h-4" />
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
-              <Sparkles className="w-6 h-6 text-amber-300" />
+            <div className="p-2.5 rounded-2xl bg-black/10 backdrop-blur-md border border-black/15">
+              <Sparkles className="w-6 h-6 text-black" />
             </div>
             <div>
-              <h2 className="text-xl font-extrabold tracking-tight">Direct Redirection to Antigravity</h2>
-              <p className="text-xs text-indigo-100 mt-0.5">
-                Unified Multi-Module Platform Orchestrator for <strong className="text-white">{project.name}</strong>
+              <h2 className="text-xl font-black tracking-tight">Direct Redirection to Antigravity</h2>
+              <p className="text-xs text-black/80 font-medium mt-0.5">
+                Unified Multi-Module Platform Orchestrator for <strong>{project.name}</strong>
               </p>
             </div>
           </div>
@@ -137,16 +137,16 @@ ${moduleRuntimeSpecs}
           <button
             onClick={handleDirectLaunchAntigravity}
             disabled={isOpeningAntigravity}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-400 hover:via-purple-400 hover:to-pink-400 text-white font-extrabold text-sm shadow-xl shadow-indigo-500/30 flex items-center justify-center gap-3 transition transform hover:scale-[1.01] active:scale-[0.99]"
+            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 hover:from-amber-300 hover:via-yellow-400 hover:to-amber-500 text-black font-black text-sm shadow-xl shadow-amber-500/30 flex items-center justify-center gap-3 transition transform hover:scale-[1.01] active:scale-[0.99]"
           >
-            <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
+            <Sparkles className="w-5 h-5 text-black animate-pulse" />
             <span>{isOpeningAntigravity ? 'Opening Antigravity...' : '🚀 Open Directly in Google Antigravity'}</span>
-            <ExternalLink className="w-4 h-4 text-white/80" />
+            <ExternalLink className="w-4 h-4 text-black" />
           </button>
 
           {antigravitySuccessMsg && (
-            <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
-              <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold flex items-center gap-2">
+              <Check className="w-4 h-4 text-amber-400 shrink-0" />
               <span>{antigravitySuccessMsg}</span>
             </div>
           )}
@@ -155,17 +155,17 @@ ${moduleRuntimeSpecs}
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={handleDownload}
-              className="py-3 px-4 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-bold text-xs flex items-center justify-center gap-2 transition"
+              className="py-3 px-4 rounded-xl bg-[#141724] hover:bg-[#1f2436] text-amber-300 border border-amber-500/30 font-bold text-xs flex items-center justify-center gap-2 transition"
             >
-              <Download className="w-4 h-4 text-indigo-400" />
+              <Download className="w-4 h-4 text-amber-400" />
               <span>{hasDownloaded ? 'Re-download ZIP' : 'Download Project ZIP'}</span>
             </button>
 
             <button
               onClick={handleCopyPrompt}
-              className="py-3 px-4 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 font-bold text-xs flex items-center justify-center gap-2 transition"
+              className="py-3 px-4 rounded-xl bg-[#141724] hover:bg-[#1f2436] text-amber-300 border border-amber-500/30 font-bold text-xs flex items-center justify-center gap-2 transition"
             >
-              {isCopied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4 text-purple-400" />}
+              {isCopied ? <Check className="w-4 h-4 text-amber-300" /> : <Copy className="w-4 h-4 text-amber-400" />}
               <span>{isCopied ? 'Copied Prompt ✓' : 'Copy Antigravity Prompt'}</span>
             </button>
           </div>
@@ -173,31 +173,31 @@ ${moduleRuntimeSpecs}
           {/* Prompt Preview Box */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-              <span className="flex items-center gap-1.5 text-indigo-400 font-semibold">
+              <span className="flex items-center gap-1.5 text-amber-400 font-semibold">
                 <Terminal className="w-3.5 h-3.5" />
                 <span>AI Agent Prompt (ANTIGRAVITY_PROMPT.md)</span>
               </span>
               <button
                 onClick={handleCopyPrompt}
-                className="text-purple-400 hover:text-purple-300 font-semibold"
+                className="text-amber-400 hover:text-amber-300 font-semibold"
               >
                 {isCopied ? 'Copied ✓' : 'Copy Full Prompt'}
               </button>
             </div>
-            <pre className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300 leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap">
+            <pre className="p-4 rounded-2xl bg-[#08090d] border border-amber-500/15 text-[11px] font-mono text-slate-300 leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap">
               {antigravityPrompt}
             </pre>
           </div>
 
           {/* 3-Step Walkthrough Guide */}
-          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+          <div className="p-4 rounded-2xl bg-[#08090d] border border-amber-500/20 space-y-2 text-xs">
             <h4 className="font-bold text-slate-200 font-mono flex items-center gap-2 text-xs">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>When you extract the ZIP, use this prompt:</span>
             </h4>
             <ol className="space-y-1.5 text-slate-400 text-[11px] list-decimal list-inside leading-relaxed">
               <li>
-                Download and extract <code className="text-indigo-300 font-mono">{project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-export.zip</code>.
+                Download and extract <code className="text-amber-300 font-mono">{project.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-export.zip</code>.
               </li>
               <li>
                 Open the extracted folder in <strong>Google Antigravity</strong> (or Cursor / Claude Code).
@@ -210,10 +210,10 @@ ${moduleRuntimeSpecs}
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex justify-end">
+        <div className="p-4 bg-[#090a0f] border-t border-amber-500/15 flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition"
+            className="px-5 py-2 rounded-xl bg-[#141724] hover:bg-[#1e2336] text-amber-200 font-semibold text-xs transition border border-amber-500/15"
           >
             Done
           </button>

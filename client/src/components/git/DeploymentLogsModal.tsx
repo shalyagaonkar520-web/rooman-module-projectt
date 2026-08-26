@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { X, Terminal, Copy, Check, Download, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, Terminal, Copy, Check, Download, RefreshCw } from 'lucide-react';
 import { useDeploymentStore } from '../../store/useDeploymentStore';
 import { DeploymentLog } from '../../types';
 
@@ -64,33 +64,33 @@ export const DeploymentLogsModal: React.FC<DeploymentLogsModalProps> = ({
       case 'CLONING':
         return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
       case 'VALIDATING':
-        return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-      case 'INSTALLING':
         return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+      case 'INSTALLING':
+        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
       case 'BUILDING':
-        return 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+        return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
       case 'DEPLOYING':
         return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
       case 'ERROR':
         return 'bg-rose-500/20 text-rose-300 border-rose-500/30';
       default:
-        return 'bg-slate-800 text-slate-400 border-slate-700';
+        return 'bg-[#141724] text-slate-400 border-amber-500/15';
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200 selection:bg-amber-500 selection:text-black">
+      <div className="bg-[#08090d] border border-amber-500/30 rounded-3xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] shadow-black">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-900/60">
+        <div className="flex items-center justify-between p-5 border-b border-amber-500/15 bg-[#0e1118]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="w-9 h-9 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
               <Terminal className="w-5 h-5" />
             </div>
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <span>Deployment Pipeline Terminal</span>
-                <span className="text-xs font-mono text-slate-400 font-normal">
+                <span className="text-xs font-mono text-amber-300 font-normal">
                   ID: {deploymentId.slice(0, 8)}
                 </span>
               </h3>
@@ -101,28 +101,28 @@ export const DeploymentLogsModal: React.FC<DeploymentLogsModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={loadLogs}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              className="p-2 rounded-xl text-slate-400 hover:text-amber-200 hover:bg-[#141724] transition"
               title="Refresh logs"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
             <button
               onClick={handleCopyAll}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition flex items-center gap-1 text-xs"
+              className="p-2 rounded-xl text-slate-400 hover:text-amber-200 hover:bg-[#141724] transition flex items-center gap-1 text-xs"
               title="Copy all logs"
             >
               {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
             </button>
             <button
               onClick={handleDownloadLogs}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              className="p-2 rounded-xl text-slate-400 hover:text-amber-200 hover:bg-[#141724] transition"
               title="Download log file"
             >
               <Download className="w-4 h-4" />
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#141724] transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -132,11 +132,11 @@ export const DeploymentLogsModal: React.FC<DeploymentLogsModalProps> = ({
         {/* Terminal Body */}
         <div
           ref={scrollRef}
-          className="flex-1 p-5 overflow-y-auto bg-slate-950 font-mono text-xs space-y-2 select-text selection:bg-indigo-500 selection:text-white"
+          className="flex-1 p-5 overflow-y-auto bg-[#08090d] font-mono text-xs space-y-2 select-text selection:bg-amber-500 selection:text-black"
         >
           {isLoading && displayLogs.length === 0 ? (
-            <div className="py-16 text-center text-slate-500 space-y-2">
-              <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="py-16 text-center text-amber-400/60 space-y-2">
+              <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto" />
               <p>Fetching build logs...</p>
             </div>
           ) : displayLogs.length === 0 ? (
@@ -149,14 +149,14 @@ export const DeploymentLogsModal: React.FC<DeploymentLogsModalProps> = ({
                 <span className="text-slate-600 text-[10px] select-none shrink-0 pt-0.5">
                   {new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
-                <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold border shrink-0 ${getStageBadge(log.stage)}`}>
+                <span className={`px-1.5 py-0.5 rounded-md text-[10px] uppercase font-bold border shrink-0 ${getStageBadge(log.stage)}`}>
                   {log.stage}
                 </span>
                 <span className={`break-all ${
                   log.level === 'error'
                     ? 'text-rose-400 font-semibold'
                     : log.level === 'warn'
-                    ? 'text-amber-300'
+                    ? 'text-yellow-300'
                     : log.level === 'success'
                     ? 'text-emerald-300'
                     : 'text-slate-300'
